@@ -288,7 +288,12 @@ function AuthScreen({ onAuth, appMode, setAppMode }: { onAuth: (user: User) => v
                   setError('Please add your VITE_SUPABASE_URL to the .env file first.');
                   return;
                 }
-                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: {
+                    redirectTo: window.location.origin
+                  }
+                });
                 if (error) setError(error.message);
               }}
             >
