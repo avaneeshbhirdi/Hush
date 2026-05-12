@@ -6,6 +6,7 @@ import {
   Lock, Eye, EyeOff, Wifi, WifiOff, Heart,
   Monitor, MonitorOff, Settings, X, Smile, AlertCircle
 } from 'lucide-react';
+import { supabase } from './supabaseClient';
 import './App.css';
 
 // ────────────────────────────────────────────────────
@@ -15,6 +16,34 @@ type AuthMode = 'login' | 'signup';
 type SidebarTab = 'chat' | 'participants';
 type Message = { text: string; sender: 'me' | 'peer' | 'system'; timestamp: number };
 type User = { name: string; email: string };
+type AppMode = 'standard' | 'couple' | 'gamer' | 'hacker';
+
+const MODES: Record<AppMode, { label: string; icon: string; accent: string; bg: string; reactions: string[]; particles: string[] }> = {
+  standard: {
+    label: 'Standard',  icon: '🔒',
+    accent: '#10B981',  bg: '',
+    reactions: ['👍','😂','❤️','😮','😢','🔥','😍','🎉'],
+    particles: ['✨','🌟','💫','⭐','🌙','🔮'],
+  },
+  couple: {
+    label: 'Couple', icon: '💑',
+    accent: '#F472B6', bg: 'linear-gradient(160deg,#120608 0%,#1A0A10 55%,#200C14 100%)',
+    reactions: ['💕','❤️','😘','💋','🌹','💑','🥰','💏'],
+    particles: ['♥','💕','💖','💗','🌸','✨'],
+  },
+  gamer: {
+    label: 'Gamer', icon: '🎮',
+    accent: '#A855F7', bg: 'linear-gradient(160deg,#07020F 0%,#0D0520 55%,#110828 100%)',
+    reactions: ['🎮','👾','💀','🏆','⚡','🎯','🔥','💥'],
+    particles: ['🎮','⚡','💥','🔥','⭐','🏆','👾','💀'],
+  },
+  hacker: {
+    label: 'Hacker', icon: '💻',
+    accent: '#22C55E', bg: 'linear-gradient(160deg,#000A00 0%,#001200 55%,#001A00 100%)',
+    reactions: ['🔐','💻','🛡️','🔑','⚙️','🕵️','👁️','🔒'],
+    particles: ['⚙️','🔐','💻','🛡️','01','10'],
+  },
+};
 
 const SERVER_URL = 'http://localhost:5001';
 const STORAGE_KEY = 'hush_users';
@@ -37,7 +66,7 @@ function getInitials(name: string) {
 }
 
 // ────────────────────────────────────────────────────
-// Floating hearts burst
+// Floating particles + Mode switcher
 // ────────────────────────────────────────────────────
 type HeartParticle = { id: number; x: number; y: number; emoji: string };
 
@@ -45,40 +74,62 @@ function FloatingHearts({ hearts }: { hearts: HeartParticle[] }) {
   return (
     <>
       {hearts.map(h => (
-        <span
-          key={h.id}
-          className="heart-particle"
-          style={{ left: h.x, top: h.y }}
-        >
-          {h.emoji}
-        </span>
+        <span key={h.id} className="heart-particle" style={{ left: h.x, top: h.y }}>{h.emoji}</span>
       ))}
     </>
+  );
+}
+
+function ModeSwitcher({ appMode, setAppMode }: { appMode: AppMode; setAppMode: (m: AppMode) => void }) {
+  const [open, setOpen] = useState(false);
+  const cur = MODES[appMode];
+  return (
+    <div className="mode-switcher-wrap">
+      <button className={`mode-pill mode-${appMode}`} onClick={() => setOpen(p => !p)}>
+        <span>{cur.icon}</span>
+        <span>{cur.label}</span>
+        <span className="mode-caret">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="mode-menu" onClick={() => setOpen(false)}>
+          {(Object.keys(MODES) as AppMode[]).map(m => (
+            <button
+              key={m}
+              className={`mode-item mode-item-${m}${appMode === m ? ' mode-item-active' : ''}`}
+              onClick={() => setAppMode(m)}
+            >
+              <span className="mi-icon">{MODES[m].icon}</span>
+              <span className="mi-label">{MODES[m].label}</span>
+              {appMode === m && <span className="mi-check">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
 // ────────────────────────────────────────────────────
 // Auth Screen
 // ────────────────────────────────────────────────────
-function AuthScreen({ onAuth, coupleMode, onToggleCouple }: { onAuth: (user: User) => void; coupleMode: boolean; onToggleCouple: () => void }) {
+function AuthScreen({ onAuth, appMode, setAppMode }: { onAuth: (user: User) => void; appMode: AppMode; setAppMode: (m: AppMode) => void }) {
   const [mode, setMode] = useState<AuthMode>('login');
   const [hearts, setHearts] = useState<HeartParticle[]>([]);
 
-  const burstHearts = useCallback((e: React.MouseEvent) => {
-    const emojis = ['♥', '💕', '💖', '💗', '🌸', '✨'];
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  // Burst particles on mode change
+  const burstParticles = useCallback((particles: string[], btn: HTMLElement) => {
+    const rect = btn.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const newHearts: HeartParticle[] = Array.from({ length: 7 }, (_, i) => ({
       id: Date.now() + i,
       x: cx + (Math.random() - 0.5) * 80,
       y: cy + (Math.random() - 0.5) * 30,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      emoji: particles[Math.floor(Math.random() * particles.length)],
     }));
     setHearts(prev => [...prev, ...newHearts]);
     setTimeout(() => setHearts(prev => prev.filter(h => !newHearts.find(n => n.id === h.id))), 3600);
-    onToggleCouple();
-  }, [onToggleCouple]);
+  }, []);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -113,16 +164,11 @@ function AuthScreen({ onAuth, coupleMode, onToggleCouple }: { onAuth: (user: Use
   return (
     <div className="auth-page">
       <FloatingHearts hearts={hearts} />
-      {/* Couple mode toggle — top-right corner on auth page */}
-      <button
-        className={`couple-btn${coupleMode ? ' active-couple' : ''}`}
-        style={{ position: 'fixed', top: 18, right: 20, zIndex: 100 }}
-        onClick={burstHearts}
-        title={coupleMode ? 'Switch to Default Mode' : 'Switch to Couple Mode'}
-      >
-        <Heart size={14} fill={coupleMode ? 'currentColor' : 'none'} />
-        {coupleMode ? 'Couple Mode ✓' : 'Couple Mode'}
-      </button>
+      {/* Mode switcher — top-right corner */}
+      <div style={{ position: 'fixed', top: 14, right: 18, zIndex: 100 }}
+           onClick={(e) => burstParticles(MODES[appMode].particles, e.currentTarget as HTMLElement)}>
+        <ModeSwitcher appMode={appMode} setAppMode={setAppMode} />
+      </div>
 
       {/* Hero */}
       <div className="auth-hero anim-fade-up">
@@ -237,7 +283,14 @@ function AuthScreen({ onAuth, coupleMode, onToggleCouple }: { onAuth: (user: Use
             <button
               type="button"
               className="btn-google"
-              onClick={() => setError('Google OAuth needs a real backend. Add your Client ID in .env and wire up the OAuth callback to enable this.')}
+              onClick={async () => {
+                if (!import.meta.env.VITE_SUPABASE_URL) {
+                  setError('Please add your VITE_SUPABASE_URL to the .env file first.');
+                  return;
+                }
+                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+                if (error) setError(error.message);
+              }}
             >
               {/* Google G icon */}
               <svg width="18" height="18" viewBox="0 0 24 24">
@@ -258,7 +311,7 @@ function AuthScreen({ onAuth, coupleMode, onToggleCouple }: { onAuth: (user: Use
 // ────────────────────────────────────────────────────
 // Main App
 // ────────────────────────────────────────────────────
-function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; onLogout: () => void; coupleMode: boolean; onToggleCouple: () => void }) {
+function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout: () => void; appMode: AppMode; setAppMode: (m: AppMode) => void }) {
   const [me, setMe] = useState('');
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [receivingCall, setReceivingCall] = useState(false);
@@ -286,9 +339,7 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
   // Reactions
   type ReactionParticle = { id: number; emoji: string; x: number; y: number };
   const [reactions, setReactions] = useState<ReactionParticle[]>([]);
-  const STANDARD_EMOJIS = ['👍','😂','❤️','😮','😢','🔥','😍','🎉'];
-  const COUPLE_EMOJIS   = ['💕','❤️','😘','💋','🌹','💑','🥰','💏'];
-  const reactionEmojis  = coupleMode ? COUPLE_EMOJIS : STANDARD_EMOJIS;
+  const reactionEmojis = MODES[appMode].reactions;
 
   // Settings modal
   const [showSettings, setShowSettings] = useState(false);
@@ -300,21 +351,20 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
   // Reaction picker
   const [showReactions, setShowReactions] = useState(false);
 
-  const burstHearts = useCallback((e: React.MouseEvent) => {
-    const emojis = ['♥', '💕', '💖', '💗', '🌸', '✨'];
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+  const burstParticles = useCallback((btn: HTMLElement) => {
+    const particles = MODES[appMode].particles;
+    const rect = btn.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const newHearts: HeartParticle[] = Array.from({ length: 8 }, (_, i) => ({
       id: Date.now() + i,
       x: cx + (Math.random() - 0.5) * 100,
       y: cy + (Math.random() - 0.5) * 40,
-      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      emoji: particles[Math.floor(Math.random() * particles.length)],
     }));
     setHearts(prev => [...prev, ...newHearts]);
     setTimeout(() => setHearts(prev => prev.filter(h => !newHearts.find(n => n.id === h.id))), 3600);
-    onToggleCouple();
-  }, [onToggleCouple]);
+  }, [appMode]);
 
   const myVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
@@ -560,15 +610,10 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
         </div>
 
         <div className="nav-right">
-          {/* Couple mode toggle */}
-          <button
-            className={`couple-btn${coupleMode ? ' active-couple' : ''}`}
-            onClick={burstHearts}
-            title={coupleMode ? 'Switch to Standard Mode' : 'Activate Couple Mode'}
-          >
-            <Heart size={13} fill={coupleMode ? 'currentColor' : 'none'} />
-            {coupleMode ? '🔒 Standard Mode' : '💑 Couple Mode'}
-          </button>
+          {/* Mode Switcher */}
+          <div onClick={(e) => burstParticles(e.currentTarget as HTMLElement)}>
+            <ModeSwitcher appMode={appMode} setAppMode={setAppMode} />
+          </div>
 
           {/* Settings */}
           <button className="icon-btn" style={{ width: 36, height: 36 }} onClick={openSettings} title="Settings">
@@ -856,28 +901,47 @@ export default function App() {
     } catch { return null; }
   });
 
-  const [coupleMode, setCoupleMode] = useState(false);
+  const [appMode, setAppMode] = useState<AppMode>('standard');
 
-  // Sync data-couple attribute on <html> so global CSS selectors work
+  // Apply data-mode + body background whenever mode changes
   useEffect(() => {
-    document.documentElement.setAttribute('data-couple', String(coupleMode));
-    document.body.style.background = coupleMode
-      ? 'linear-gradient(160deg, #120608 0%, #1A0A10 55%, #200C14 100%)'
-      : '';
+    document.documentElement.setAttribute('data-mode', appMode);
+    document.body.style.background = MODES[appMode].bg;
     return () => {
-      document.documentElement.removeAttribute('data-couple');
+      document.documentElement.removeAttribute('data-mode');
       document.body.style.background = '';
     };
-  }, [coupleMode]);
-
-  const toggleCouple = useCallback(() => setCoupleMode(m => !m), []);
+  }, [appMode]);
 
   const handleAuth = (u: User) => setUser(u);
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem(SESSION_KEY);
+    await supabase.auth.signOut();
     setUser(null);
   };
 
-  if (!user) return <AuthScreen onAuth={handleAuth} coupleMode={coupleMode} onToggleCouple={toggleCouple} />;
-  return <MainApp user={user} onLogout={handleLogout} coupleMode={coupleMode} onToggleCouple={toggleCouple} />;
+  // Listen for Supabase auth state changes (e.g. after returning from Google)
+  useEffect(() => {
+    if (!import.meta.env.VITE_SUPABASE_URL) return;
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({ name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'User', email: session.user.email || '' });
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({ name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'User', email: session.user.email || '' });
+      } else {
+        // Only clear user if they log out via Supabase
+        // Keep it if they logged in via the local fallback
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (!user) return <AuthScreen onAuth={handleAuth} appMode={appMode} setAppMode={setAppMode} />;
+  return <MainApp user={user} onLogout={handleLogout} appMode={appMode} setAppMode={setAppMode} />;
 }

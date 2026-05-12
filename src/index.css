@@ -183,60 +183,91 @@ input::placeholder { color: var(--text-3); }
 /* ══════════════════════════════════════════════════
    COUPLE MODE THEME
 ══════════════════════════════════════════════════ */
-[data-couple="true"] {
+[data-mode="couple"] {
   --primary:       #F472B6;
   --primary-dark:  #EC4899;
   --primary-glow:  rgba(244, 114, 182, 0.40);
   --danger:        #FB7185;
   --danger-hover:  #F43F5E;
   --danger-glow:   rgba(244, 63, 94, 0.35);
-  --warn:          #FBBF24;
-
-  --bg:            #120608;
-  --bg-alt:        #1A0A10;
-  --bg-card:       #200C14;
-  --bg-elevated:   #2D1020;
-
-  --surface:       rgba(244, 114, 182, 0.06);
-  --surface-hover: rgba(244, 114, 182, 0.12);
-  --border:        rgba(244, 114, 182, 0.14);
-  --border-accent: rgba(244, 114, 182, 0.50);
-
-  --text-1:  #FDF2F8;
-  --text-2:  #D4819E;
-  --text-3:  #8B4C62;
+  --bg:            #120608; --bg-alt: #1A0A10; --bg-card: #200C14; --bg-elevated: #2D1020;
+  --surface:       rgba(244,114,182,0.06);
+  --surface-hover: rgba(244,114,182,0.12);
+  --border:        rgba(244,114,182,0.14);
+  --border-accent: rgba(244,114,182,0.50);
+  --text-1: #FDF2F8; --text-2: #D4819E; --text-3: #8B4C62;
 }
 
-[data-couple="true"] body {
-  background: var(--bg);
+[data-mode="gamer"] {
+  --primary:       #A855F7;
+  --primary-dark:  #9333EA;
+  --primary-glow:  rgba(168,85,247,0.45);
+  --danger:        #22D3EE;
+  --danger-hover:  #06B6D4;
+  --danger-glow:   rgba(34,211,238,0.35);
+  --warn:          #EF4444;
+  --bg:            #07020F; --bg-alt: #0D0520; --bg-card: #110828; --bg-elevated: #1A0A38;
+  --surface:       rgba(168,85,247,0.07);
+  --surface-hover: rgba(168,85,247,0.14);
+  --border:        rgba(168,85,247,0.18);
+  --border-accent: rgba(168,85,247,0.55);
+  --text-1: #F5F0FF; --text-2: #A78BFA; --text-3: #6D28D9;
 }
 
-[data-couple="true"] h1,
-[data-couple="true"] h2,
-[data-couple="true"] h3,
-[data-couple="true"] h4 {
+[data-mode="hacker"] {
+  --primary:       #22C55E;
+  --primary-dark:  #16A34A;
+  --primary-glow:  rgba(34,197,94,0.40);
+  --danger:        #EF4444;
+  --danger-hover:  #DC2626;
+  --danger-glow:   rgba(239,68,68,0.35);
+  --warn:          #F59E0B;
+  --bg:            #000A00; --bg-alt: #001200; --bg-card: #001A00; --bg-elevated: #002400;
+  --surface:       rgba(34,197,94,0.06);
+  --surface-hover: rgba(34,197,94,0.12);
+  --border:        rgba(34,197,94,0.18);
+  --border-accent: rgba(34,197,94,0.55);
+  --text-1: #DCFCE7; --text-2: #4ADE80; --text-3: #166534;
+}
+
+[data-mode="couple"] body { background: var(--bg); }
+[data-mode="gamer"] body   { background: var(--bg); }
+[data-mode="hacker"] body  { background: var(--bg); }
+
+[data-mode="couple"] h1,[data-mode="couple"] h2,[data-mode="couple"] h3,[data-mode="couple"] h4 {
   font-family: 'Playfair Display', serif;
 }
-
-[data-couple="true"] input:focus,
-[data-couple="true"] textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.18);
+[data-mode="gamer"] h1,[data-mode="gamer"] h2,[data-mode="gamer"] h3,[data-mode="gamer"] h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+[data-mode="hacker"] h1,[data-mode="hacker"] h2,[data-mode="hacker"] h3,[data-mode="hacker"] h4,
+[data-mode="hacker"] input,[data-mode="hacker"] textarea,[data-mode="hacker"] button {
+  font-family: 'Courier New', 'Courier', monospace;
 }
 
-[data-couple="true"] .btn-primary {
-  color: #fff;
-  background: linear-gradient(135deg, #F472B6, #EC4899);
+[data-mode="couple"] input:focus,[data-mode="couple"] textarea:focus {
+  border-color: var(--primary); box-shadow: 0 0 0 3px rgba(244,114,182,0.18);
 }
-[data-couple="true"] .btn-primary:hover {
-  background: linear-gradient(135deg, #EC4899, #DB2777);
-  box-shadow: 0 6px 24px rgba(244, 114, 182, 0.45);
+[data-mode="gamer"] input:focus,[data-mode="gamer"] textarea:focus {
+  border-color: var(--primary); box-shadow: 0 0 0 3px rgba(168,85,247,0.22);
 }
-[data-couple="true"] .icon-btn.active {
-  background: linear-gradient(135deg, #F472B6, #EC4899);
-  border-color: #F472B6;
-  color: #fff;
+[data-mode="hacker"] input:focus,[data-mode="hacker"] textarea:focus {
+  border-color: var(--primary); box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
 }
+
+[data-mode="couple"] .btn-primary { color:#fff; background:linear-gradient(135deg,#F472B6,#EC4899); }
+[data-mode="couple"] .btn-primary:hover { background:linear-gradient(135deg,#EC4899,#DB2777); box-shadow:0 6px 24px rgba(244,114,182,0.45); }
+[data-mode="couple"] .icon-btn.active { background:linear-gradient(135deg,#F472B6,#EC4899); border-color:#F472B6; color:#fff; }
+
+[data-mode="gamer"] .btn-primary { color:#fff; background:linear-gradient(135deg,#A855F7,#7C3AED); }
+[data-mode="gamer"] .btn-primary:hover { background:linear-gradient(135deg,#9333EA,#6D28D9); box-shadow:0 6px 24px rgba(168,85,247,0.5); }
+[data-mode="gamer"] .icon-btn.active { background:linear-gradient(135deg,#A855F7,#7C3AED); border-color:#A855F7; color:#fff; }
+
+[data-mode="hacker"] .btn-primary { color:#000; background:linear-gradient(135deg,#22C55E,#16A34A); }
+[data-mode="hacker"] .btn-primary:hover { background:linear-gradient(135deg,#16A34A,#15803D); box-shadow:0 6px 24px rgba(34,197,94,0.45); }
+[data-mode="hacker"] .icon-btn.active { background:linear-gradient(135deg,#22C55E,#16A34A); border-color:#22C55E; color:#000; }
 
 /* Floating hearts */
 @keyframes floatHeart {

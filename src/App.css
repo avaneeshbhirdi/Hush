@@ -744,120 +744,134 @@
    COUPLE MODE — App-level overrides
 ════════════════════════════════════════════════ */
 
-/* Background blobs turn rosy */
-[data-couple="true"] .auth-page::before {
-  background: radial-gradient(circle, rgba(244,114,182,0.22) 0%, transparent 70%);
+[data-mode="couple"] .auth-page::before  { background: radial-gradient(circle,rgba(244,114,182,0.22) 0%,transparent 70%); }
+[data-mode="couple"] .auth-page::after   { background: radial-gradient(circle,rgba(251,113,133,0.15) 0%,transparent 70%); }
+[data-mode="gamer"]  .auth-page::before  { background: radial-gradient(circle,rgba(168,85,247,0.25)  0%,transparent 70%); }
+[data-mode="gamer"]  .auth-page::after   { background: radial-gradient(circle,rgba(34,211,238,0.12)  0%,transparent 70%); }
+[data-mode="hacker"] .auth-page::before  { background: radial-gradient(circle,rgba(34,197,94,0.20)   0%,transparent 70%); }
+[data-mode="hacker"] .auth-page::after   { background: radial-gradient(circle,rgba(34,197,94,0.10)   0%,transparent 70%); }
+
+[data-mode="couple"] .auth-tagline { letter-spacing:-0.5px; }
+[data-mode="couple"] .auth-tagline .highlight { color:var(--primary); font-style:italic; }
+[data-mode="gamer"]  .auth-tagline { letter-spacing:0.05em; }
+[data-mode="gamer"]  .auth-tagline .highlight { color:var(--primary); text-shadow:0 0 20px rgba(168,85,247,0.6); }
+[data-mode="hacker"] .auth-tagline { letter-spacing:0.08em; font-family:'Courier New',monospace; }
+[data-mode="hacker"] .auth-tagline .highlight { color:var(--primary); text-shadow:0 0 14px rgba(34,197,94,0.5); }
+
+[data-mode="couple"] .feat-icon { background:rgba(244,114,182,0.12); border-color:rgba(244,114,182,0.22); }
+[data-mode="gamer"]  .feat-icon { background:rgba(168,85,247,0.12);  border-color:rgba(168,85,247,0.25); }
+[data-mode="hacker"] .feat-icon { background:rgba(34,197,94,0.10);   border-color:rgba(34,197,94,0.25); }
+
+[data-mode="couple"] .e2ee-badge { background:rgba(244,114,182,0.10); border-color:rgba(244,114,182,0.25); }
+[data-mode="gamer"]  .e2ee-badge { background:rgba(168,85,247,0.10);  border-color:rgba(168,85,247,0.28); }
+[data-mode="hacker"] .e2ee-badge { background:rgba(34,197,94,0.10);   border-color:rgba(34,197,94,0.28); }
+
+[data-mode="couple"] .auth-tab.active { background:linear-gradient(135deg,#F472B6,#EC4899); color:#fff; }
+[data-mode="gamer"]  .auth-tab.active { background:linear-gradient(135deg,#A855F7,#7C3AED); color:#fff; }
+[data-mode="hacker"] .auth-tab.active { background:linear-gradient(135deg,#22C55E,#16A34A); color:#000; }
+
+[data-mode="couple"] .s-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+[data-mode="gamer"]  .s-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+[data-mode="hacker"] .s-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+[data-mode="couple"] .msg.me { background:linear-gradient(135deg,#F472B6,#EC4899); color:#fff; }
+[data-mode="gamer"]  .msg.me { background:linear-gradient(135deg,#A855F7,#7C3AED); color:#fff; }
+[data-mode="hacker"] .msg.me { background:linear-gradient(135deg,#22C55E,#16A34A); color:#000; }
+
+[data-mode="couple"] .msg.peer { border-color:rgba(244,114,182,0.22); }
+[data-mode="gamer"]  .msg.peer { border-color:rgba(168,85,247,0.25); }
+[data-mode="hacker"] .msg.peer { border-color:rgba(34,197,94,0.22); }
+
+[data-mode="couple"] .connection-card { border-color:rgba(244,114,182,0.20); box-shadow:0 0 32px rgba(244,114,182,0.08); }
+[data-mode="gamer"]  .connection-card { border-color:rgba(168,85,247,0.20);  box-shadow:0 0 32px rgba(168,85,247,0.10); }
+[data-mode="hacker"] .connection-card { border-color:rgba(34,197,94,0.20);   box-shadow:0 0 32px rgba(34,197,94,0.08); }
+
+[data-mode="couple"] .pip-video { border-color:rgba(244,114,182,0.55); }
+[data-mode="gamer"]  .pip-video { border-color:rgba(168,85,247,0.55); }
+[data-mode="hacker"] .pip-video { border-color:rgba(34,197,94,0.55); }
+
+[data-mode="couple"] .avatar,[data-mode="couple"] .p-avatar { background:linear-gradient(135deg,#F472B6,#BE185D); color:#fff; }
+[data-mode="gamer"]  .avatar,[data-mode="gamer"]  .p-avatar { background:linear-gradient(135deg,#A855F7,#5B21B6); color:#fff; }
+[data-mode="hacker"] .avatar,[data-mode="hacker"] .p-avatar { background:linear-gradient(135deg,#22C55E,#15803D); color:#000; }
+
+[data-mode="couple"] .send-btn { background:linear-gradient(135deg,#F472B6,#EC4899); color:#fff; }
+[data-mode="gamer"]  .send-btn { background:linear-gradient(135deg,#A855F7,#7C3AED); color:#fff; }
+[data-mode="hacker"] .send-btn { background:linear-gradient(135deg,#22C55E,#16A34A); color:#000; font-family:'Courier New',monospace; }
+
+/* Gamer scanline effect */
+[data-mode="gamer"] .video-stage::after {
+  content:'';
+  position:absolute; inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(168,85,247,0.03) 2px,rgba(168,85,247,0.03) 4px);
+  pointer-events:none; z-index:1;
 }
-[data-couple="true"] .auth-page::after {
-  background: radial-gradient(circle, rgba(251,113,133,0.15) 0%, transparent 70%);
+/* Hacker terminal cursor blink on stage */
+[data-mode="hacker"] .video-stage::before {
+  content:'█';
+  position:absolute; bottom:20px; right:20px;
+  font-family:'Courier New',monospace;
+  color:rgba(34,197,94,0.4); font-size:1.2rem;
+  animation:fadeIn 0.6s infinite alternate;
+  pointer-events:none; z-index:1;
 }
 
-/* Auth hero tagline font becomes Playfair */
-[data-couple="true"] .auth-tagline {
-  letter-spacing: -0.5px;
-}
-[data-couple="true"] .auth-tagline .highlight {
-  color: var(--primary);
-  font-style: italic;
-}
+/* ════════════════════════════════════════════════
+   MODE SWITCHER PILL
+════════════════════════════════════════════════ */
+.mode-switcher-wrap { position: relative; }
 
-/* Feature icons rose-tinted */
-[data-couple="true"] .feat-icon {
-  background: rgba(244,114,182,0.12);
-  border-color: rgba(244,114,182,0.22);
+.mode-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 13px;
+  border-radius: 99px;
+  font-size: 0.82rem; font-weight: 600;
+  border: 1.5px solid var(--border-accent);
+  background: var(--surface);
+  color: var(--text-1);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
-[data-couple="true"] .e2ee-badge {
-  background: rgba(244,114,182,0.10);
-  border-color: rgba(244,114,182,0.25);
-}
+.mode-pill:hover { background: var(--surface-hover); }
+.mode-caret { font-size: 0.6rem; opacity: 0.6; }
 
-/* Auth tabs active = pink */
-[data-couple="true"] .auth-tab.active {
-  background: linear-gradient(135deg, #F472B6, #EC4899);
-  color: #fff;
-}
+/* Per-mode pill accent */
+.mode-pill.mode-standard { border-color: rgba(16,185,129,0.50); color: #10B981; background: rgba(16,185,129,0.08); }
+.mode-pill.mode-couple   { border-color: rgba(244,114,182,0.55); color: #F472B6; background: rgba(244,114,182,0.10); }
+.mode-pill.mode-gamer    { border-color: rgba(168,85,247,0.55);  color: #A855F7; background: rgba(168,85,247,0.10); }
+.mode-pill.mode-hacker   { border-color: rgba(34,197,94,0.55);   color: #22C55E; background: rgba(34,197,94,0.08); }
 
-/* Nav brand dot = pink */
-[data-couple="true"] .nav-brand .dot { color: var(--primary); }
-
-/* Sidebar tabs active = pink */
-[data-couple="true"] .s-tab.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-/* Chat bubbles */
-[data-couple="true"] .msg.me {
-  background: linear-gradient(135deg, #F472B6, #EC4899);
-  color: #fff;
-}
-[data-couple="true"] .msg.peer {
-  border-color: rgba(244,114,182,0.22);
-}
-
-/* Connection card glows */
-[data-couple="true"] .connection-card {
-  border-color: rgba(244,114,182,0.20);
-  box-shadow: 0 0 32px rgba(244,114,182,0.08);
-}
-
-/* pip border */
-[data-couple="true"] .pip-video {
-  border-color: rgba(244,114,182,0.55);
-}
-
-/* Stage E2EE msg */
-[data-couple="true"] .stage-msg {
-  border-color: rgba(244,114,182,0.20);
-}
-
-/* Avatar gradient = pink */
-[data-couple="true"] .avatar,
-[data-couple="true"] .p-avatar {
-  background: linear-gradient(135deg, #F472B6, #BE185D);
-  color: #fff;
-}
-
-/* Send button */
-[data-couple="true"] .send-btn {
-  background: linear-gradient(135deg, #F472B6, #EC4899);
-  color: #fff;
-}
-[data-couple="true"] .send-btn:hover {
-  background: linear-gradient(135deg, #EC4899, #DB2777);
-}
-
-/* Copy btn */
-[data-couple="true"] .copy-btn svg { color: var(--primary); }
-
-/* Couple mode — subtle scanline-like heart watermark on video stage */
-[data-couple="true"] .video-stage::before {
-  content: '♡';
+.mode-menu {
   position: absolute;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 4rem;
-  color: rgba(244,114,182,0.07);
-  pointer-events: none;
-  z-index: 0;
-  user-select: none;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 160px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  animation: fadeUp 0.18s ease-out;
+  z-index: 999;
+  display: flex; flex-direction: column; gap: 3px;
 }
-
-/* Navbar badge turns rose */
-[data-couple="true"] .nav-badge {
-  background: rgba(244,114,182,0.12);
-  border-color: rgba(244,114,182,0.28);
-  color: #F472B6;
+.mode-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 0.85rem; font-weight: 500;
+  background: transparent;
+  color: var(--text-2);
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
 }
+.mode-item:hover { background: var(--surface-hover); color: var(--text-1); }
+.mode-item .mi-icon { font-size: 1rem; }
+.mode-item .mi-label { flex: 1; }
+.mode-item .mi-check { font-size: 0.75rem; opacity: 0.8; }
 
-/* Controls bar border tint */
-[data-couple="true"] .controls-bar {
-  border-color: rgba(244,114,182,0.14);
-}
-
-/* Auth form panel separator line */
-[data-couple="true"] .auth-form-panel {
-  border-left-color: rgba(244,114,182,0.15);
-}
-
+.mode-item-standard.mode-item-active { background: rgba(16,185,129,0.12);  color: #10B981; }
+.mode-item-couple.mode-item-active   { background: rgba(244,114,182,0.12); color: #F472B6; }
+.mode-item-gamer.mode-item-active    { background: rgba(168,85,247,0.12);  color: #A855F7; }
+.mode-item-hacker.mode-item-active   { background: rgba(34,197,94,0.10);   color: #22C55E; }
