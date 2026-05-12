@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
 
 :root {
-  --primary:       #10B981;
-  --primary-dark:  #059669;
-  --primary-glow:  rgba(16, 185, 129, 0.35);
+  --primary:       #3B82F6;
+  --primary-dark:  #2563EB;
+  --primary-glow:  rgba(59, 130, 246, 0.35);
   --danger:        #EF4444;
   --danger-hover:  #DC2626;
   --danger-glow:   rgba(239, 68, 68, 0.35);
@@ -17,7 +17,7 @@
   --surface:       rgba(255,255,255,0.04);
   --surface-hover: rgba(255,255,255,0.08);
   --border:        rgba(255,255,255,0.08);
-  --border-accent: rgba(16,185,129,0.4);
+  --border-accent: rgba(59, 130, 246, 0.40);
 
   --text-1:  #F0F4F8;
   --text-2:  #8899AA;

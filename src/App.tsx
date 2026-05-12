@@ -21,7 +21,7 @@ type AppMode = 'standard' | 'couple' | 'gamer' | 'hacker';
 const MODES: Record<AppMode, { label: string; icon: string; accent: string; bg: string; reactions: string[]; particles: string[] }> = {
   standard: {
     label: 'Standard',  icon: '🔒',
-    accent: '#10B981',  bg: '',
+    accent: '#3B82F6',  bg: '',
     reactions: ['👍','😂','❤️','😮','😢','🔥','😍','🎉'],
     particles: ['✨','🌟','💫','⭐','🌙','🔮'],
   },

@@ -837,7 +837,7 @@
 .mode-caret { font-size: 0.6rem; opacity: 0.6; }
 
 /* Per-mode pill accent */
-.mode-pill.mode-standard { border-color: rgba(16,185,129,0.50); color: #10B981; background: rgba(16,185,129,0.08); }
+.mode-pill.mode-standard { border-color: rgba(59,130,246,0.50); color: #3B82F6; background: rgba(59,130,246,0.08); }
 .mode-pill.mode-couple   { border-color: rgba(244,114,182,0.55); color: #F472B6; background: rgba(244,114,182,0.10); }
 .mode-pill.mode-gamer    { border-color: rgba(168,85,247,0.55);  color: #A855F7; background: rgba(168,85,247,0.10); }
 .mode-pill.mode-hacker   { border-color: rgba(34,197,94,0.55);   color: #22C55E; background: rgba(34,197,94,0.08); }
@@ -871,7 +871,7 @@
 .mode-item .mi-label { flex: 1; }
 .mode-item .mi-check { font-size: 0.75rem; opacity: 0.8; }
 
-.mode-item-standard.mode-item-active { background: rgba(16,185,129,0.12);  color: #10B981; }
+.mode-item-standard.mode-item-active { background: rgba(59,130,246,0.12);  color: #3B82F6; }
 .mode-item-couple.mode-item-active   { background: rgba(244,114,182,0.12); color: #F472B6; }
 .mode-item-gamer.mode-item-active    { background: rgba(168,85,247,0.12);  color: #A855F7; }
 .mode-item-hacker.mode-item-active   { background: rgba(34,197,94,0.10);   color: #22C55E; }
