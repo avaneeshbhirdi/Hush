@@ -1,0 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+
+:root {
+  --primary:       #10B981;
+  --primary-dark:  #059669;
+  --primary-glow:  rgba(16, 185, 129, 0.35);
+  --danger:        #EF4444;
+  --danger-hover:  #DC2626;
+  --danger-glow:   rgba(239, 68, 68, 0.35);
+  --warn:          #F59E0B;
+
+  --bg:            #0A0C0F;
+  --bg-alt:        #0F1218;
+  --bg-card:       #131820;
+  --bg-elevated:   #1A2233;
+
+  --surface:       rgba(255,255,255,0.04);
+  --surface-hover: rgba(255,255,255,0.08);
+  --border:        rgba(255,255,255,0.08);
+  --border-accent: rgba(16,185,129,0.4);
+
+  --text-1:  #F0F4F8;
+  --text-2:  #8899AA;
+  --text-3:  #55677A;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#root { height: 100%; display: flex; flex-direction: column; }
+
+/* ── Typography ─────────────────────────────── */
+h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+
+/* ── Glass card ─────────────────────────────── */
+.glass {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Buttons ────────────────────────────────── */
+button {
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #000;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px var(--primary-glow);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text-1);
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-ghost:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-accent);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-danger:hover {
+  background: var(--danger-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--danger-glow);
+}
+
+/* ── Icon buttons ───────────────────────────── */
+.icon-btn {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+}
+.icon-btn:hover { background: var(--surface-hover); transform: scale(1.06); }
+.icon-btn.active { background: var(--primary); border-color: var(--primary); color: #000; }
+.icon-btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.icon-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+/* ── Inputs ─────────────────────────────────── */
+input, textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+}
+input::placeholder { color: var(--text-3); }
+
+/* ── Scrollbar ──────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* ── Animations ─────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 var(--primary-glow); }
+  70%  { box-shadow: 0 0 0 14px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0);   }
+}
+
+.anim-fade-up  { animation: fadeUp  0.45s ease-out forwards; }
+.anim-fade-in  { animation: fadeIn  0.3s ease-out forwards; }
+.anim-slide-right { animation: slideInRight 0.35s ease-out forwards; }
+
+/* ══════════════════════════════════════════════════
+   COUPLE MODE THEME
+══════════════════════════════════════════════════ */
+[data-couple="true"] {
+  --primary:       #F472B6;
+  --primary-dark:  #EC4899;
+  --primary-glow:  rgba(244, 114, 182, 0.40);
+  --danger:        #FB7185;
+  --danger-hover:  #F43F5E;
+  --danger-glow:   rgba(244, 63, 94, 0.35);
+  --warn:          #FBBF24;
+
+  --bg:            #120608;
+  --bg-alt:        #1A0A10;
+  --bg-card:       #200C14;
+  --bg-elevated:   #2D1020;
+
+  --surface:       rgba(244, 114, 182, 0.06);
+  --surface-hover: rgba(244, 114, 182, 0.12);
+  --border:        rgba(244, 114, 182, 0.14);
+  --border-accent: rgba(244, 114, 182, 0.50);
+
+  --text-1:  #FDF2F8;
+  --text-2:  #D4819E;
+  --text-3:  #8B4C62;
+}
+
+[data-couple="true"] body {
+  background: var(--bg);
+}
+
+[data-couple="true"] h1,
+[data-couple="true"] h2,
+[data-couple="true"] h3,
+[data-couple="true"] h4 {
+  font-family: 'Playfair Display', serif;
+}
+
+[data-couple="true"] input:focus,
+[data-couple="true"] textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.18);
+}
+
+[data-couple="true"] .btn-primary {
+  color: #fff;
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+}
+[data-couple="true"] .btn-primary:hover {
+  background: linear-gradient(135deg, #EC4899, #DB2777);
+  box-shadow: 0 6px 24px rgba(244, 114, 182, 0.45);
+}
+[data-couple="true"] .icon-btn.active {
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  border-color: #F472B6;
+  color: #fff;
+}
+
+/* Floating hearts */
+@keyframes floatHeart {
+  0%   { transform: translateY(0)   scale(1)   rotate(0deg);  opacity: 0.7; }
+  50%  { transform: translateY(-55px) scale(1.15) rotate(10deg); opacity: 0.9; }
+  100% { transform: translateY(-110px) scale(0.8) rotate(-8deg); opacity: 0; }
+}
+
+.heart-particle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 1.1rem;
+  animation: floatHeart 3.5s ease-out forwards;
+  z-index: 9999;
+  user-select: none;
+}
+
+/* Couple mode badge / button */
+.couple-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 99px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1.5px solid rgba(244, 114, 182, 0.35);
+  background: rgba(244, 114, 182, 0.08);
+  color: #F472B6;
+  transition: all 0.35s ease;
+}
+.couple-btn:hover {
+  background: rgba(244, 114, 182, 0.18);
+  border-color: #F472B6;
+  transform: scale(1.04);
+}
+.couple-btn.active-couple {
+  background: linear-gradient(135deg, rgba(244,114,182,0.28), rgba(236,72,153,0.18));
+  border-color: #F472B6;
+  box-shadow: 0 0 18px rgba(244,114,182,0.30);
+}
+[data-couple="true"] .couple-btn {
+  border-color: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06);
+  color: var(--text-1);
+}
