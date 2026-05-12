@@ -3,7 +3,8 @@ import { io, Socket } from 'socket.io-client';
 import {
   Video, VideoOff, Mic, MicOff, Phone, PhoneOff,
   Send, Copy, ShieldCheck, LogOut, Users, MessageCircle,
-  Lock, Eye, EyeOff, Wifi, WifiOff, Heart
+  Lock, Eye, EyeOff, Wifi, WifiOff, Heart,
+  Monitor, MonitorOff, Settings, X, Smile, AlertCircle
 } from 'lucide-react';
 import './App.css';
 
@@ -236,7 +237,7 @@ function AuthScreen({ onAuth, coupleMode, onToggleCouple }: { onAuth: (user: Use
             <button
               type="button"
               className="btn-google"
-              onClick={() => setError('Google OAuth requires backend configuration.')}
+              onClick={() => setError('Google OAuth needs a real backend. Add your Client ID in .env and wire up the OAuth callback to enable this.')}
             >
               {/* Google G icon */}
               <svg width="18" height="18" viewBox="0 0 24 24">
@@ -277,6 +278,27 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
   const [activeTab, setActiveTab] = useState<SidebarTab>('chat');
   const [copied, setCopied] = useState(false);
   const [hearts, setHearts] = useState<HeartParticle[]>([]);
+
+  // Screen share
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+
+  // Reactions
+  type ReactionParticle = { id: number; emoji: string; x: number; y: number };
+  const [reactions, setReactions] = useState<ReactionParticle[]>([]);
+  const STANDARD_EMOJIS = ['👍','😂','❤️','😮','😢','🔥','😍','🎉'];
+  const COUPLE_EMOJIS   = ['💕','❤️','😘','💋','🌹','💑','🥰','💏'];
+  const reactionEmojis  = coupleMode ? COUPLE_EMOJIS : STANDARD_EMOJIS;
+
+  // Settings modal
+  const [showSettings, setShowSettings] = useState(false);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selCam, setSelCam] = useState('');
+  const [selMic, setSelMic] = useState('');
+  const [displayName, setDisplayName] = useState(user.name);
+
+  // Reaction picker
+  const [showReactions, setShowReactions] = useState(false);
 
   const burstHearts = useCallback((e: React.MouseEvent) => {
     const emojis = ['♥', '💕', '💖', '💗', '🌸', '✨'];
@@ -402,7 +424,81 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
 
   const setupDataChannel = (ch: RTCDataChannel) => {
     ch.onopen = () => console.log('Data channel open');
-    ch.onmessage = e => addMsg('peer', e.data);
+    ch.onmessage = (e) => {
+      try {
+        const parsed = JSON.parse(e.data);
+        if (parsed.type === 'reaction') {
+          spawnReaction(parsed.emoji, true);
+          return;
+        }
+        if (parsed.type === 'message') { addMsg('peer', parsed.text); return; }
+      } catch {}
+      addMsg('peer', e.data);
+    };
+  };
+
+  // ── Screen share ─────────────────────────────────────
+  const startScreenShare = async () => {
+    try {
+      const screen = await (navigator.mediaDevices as any).getDisplayMedia({ video: true });
+      screenStreamRef.current = screen;
+      const vTrack = screen.getVideoTracks()[0];
+      const sender = connectionRef.current?.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) sender.replaceTrack(vTrack);
+      if (myVideo.current) myVideo.current.srcObject = screen;
+      setIsScreenSharing(true);
+      vTrack.onended = () => stopScreenShare();
+    } catch { addMsg('system', '⚠ Screen share cancelled or not supported.'); }
+  };
+
+  const stopScreenShare = () => {
+    screenStreamRef.current?.getTracks().forEach(t => t.stop());
+    const vTrack = stream?.getVideoTracks()[0];
+    const sender = connectionRef.current?.getSenders().find(s => s.track?.kind === 'video');
+    if (sender && vTrack) sender.replaceTrack(vTrack);
+    if (myVideo.current && stream) myVideo.current.srcObject = stream;
+    setIsScreenSharing(false);
+  };
+
+  // ── Reactions ─────────────────────────────────────────
+  const spawnReaction = (emoji: string, fromPeer = false) => {
+    const id = Date.now() + Math.random();
+    const x = fromPeer ? Math.random() * 200 + 20 : Math.random() * 200 + 280;
+    const y = window.innerHeight * 0.7;
+    const r: ReactionParticle = { id, emoji, x, y };
+    setReactions(prev => [...prev, r]);
+    setTimeout(() => setReactions(prev => prev.filter(p => p.id !== id)), 2500);
+  };
+
+  const sendReaction = (emoji: string) => {
+    spawnReaction(emoji);
+    if (dataChannel.current?.readyState === 'open') {
+      dataChannel.current.send(JSON.stringify({ type: 'reaction', emoji }));
+    }
+    setShowReactions(false);
+  };
+
+  // ── Settings ─────────────────────────────────────────
+  const openSettings = async () => {
+    const devs = await navigator.mediaDevices.enumerateDevices();
+    setDevices(devs);
+    setShowSettings(true);
+  };
+
+  const applySettings = async () => {
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: selCam ? { deviceId: { exact: selCam } } : true,
+        audio: selMic ? { deviceId: { exact: selMic } } : true,
+      });
+      if (myVideo.current) myVideo.current.srcObject = newStream;
+      const vSender = connectionRef.current?.getSenders().find(s => s.track?.kind === 'video');
+      const aSender = connectionRef.current?.getSenders().find(s => s.track?.kind === 'audio');
+      vSender?.replaceTrack(newStream.getVideoTracks()[0]);
+      aSender?.replaceTrack(newStream.getAudioTracks()[0]);
+      setStream(newStream);
+    } catch { addMsg('system', '⚠ Could not apply device settings.'); }
+    setShowSettings(false);
   };
 
   const leaveCall = () => {
@@ -416,7 +512,7 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
     e.preventDefault();
     if (!messageText.trim()) return;
     if (dataChannel.current?.readyState === 'open') {
-      dataChannel.current.send(messageText);
+      dataChannel.current.send(JSON.stringify({ type: 'message', text: messageText }));
       addMsg('me', messageText);
     } else {
       addMsg('system', '⚠ Secure channel not ready yet.');
@@ -468,10 +564,15 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
           <button
             className={`couple-btn${coupleMode ? ' active-couple' : ''}`}
             onClick={burstHearts}
-            title={coupleMode ? 'Switch to Default Mode' : 'Activate Couple Mode'}
+            title={coupleMode ? 'Switch to Standard Mode' : 'Activate Couple Mode'}
           >
             <Heart size={13} fill={coupleMode ? 'currentColor' : 'none'} />
-            {coupleMode ? '💑 Couple Mode' : '🤍 Couple Mode'}
+            {coupleMode ? '🔒 Standard Mode' : '💑 Couple Mode'}
+          </button>
+
+          {/* Settings */}
+          <button className="icon-btn" style={{ width: 36, height: 36 }} onClick={openSettings} title="Settings">
+            <Settings size={16} />
           </button>
 
           <div className="user-pill">
@@ -531,6 +632,11 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
             )}
           </div>
 
+          {/* Reactions floating */}
+          {reactions.map(r => (
+            <span key={r.id} className="reaction-particle" style={{ left: r.x, top: r.y }}>{r.emoji}</span>
+          ))}
+
           {/* Controls */}
           <div className="controls-bar">
             <button className={`icon-btn ${isAudioMuted ? 'danger' : ''}`} onClick={toggleAudio} title={isAudioMuted ? 'Unmute' : 'Mute'} disabled={!stream}>
@@ -539,6 +645,25 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
             <button className={`icon-btn ${isVideoMuted ? 'danger' : ''}`} onClick={toggleVideo} title={isVideoMuted ? 'Show video' : 'Hide video'} disabled={!stream}>
               {isVideoMuted ? <VideoOff size={20} /> : <Video size={20} />}
             </button>
+
+            {/* Screen share */}
+            <button className={`icon-btn ${isScreenSharing ? 'active' : ''}`} onClick={isScreenSharing ? stopScreenShare : startScreenShare} title={isScreenSharing ? 'Stop sharing' : 'Share screen'} disabled={!inCall}>
+              {isScreenSharing ? <MonitorOff size={20} /> : <Monitor size={20} />}
+            </button>
+
+            {/* Reactions */}
+            <div style={{ position: 'relative' }}>
+              <button className="icon-btn" onClick={() => setShowReactions(p => !p)} title="Reactions">
+                <Smile size={20} />
+              </button>
+              {showReactions && (
+                <div className="reaction-picker">
+                  {reactionEmojis.map(e => (
+                    <button key={e} className="reaction-pick-btn" onClick={() => sendReaction(e)}>{e}</button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {inCall
               ? <button className="icon-btn danger" onClick={leaveCall} title="Leave call"><PhoneOff size={22} /></button>
@@ -655,6 +780,48 @@ function MainApp({ user, onLogout, coupleMode, onToggleCouple }: { user: User; o
           )}
         </div>
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+          <div className="settings-modal" onClick={e => e.stopPropagation()}>
+            <div className="settings-header">
+              <h3>⚙️ Settings</h3>
+              <button className="icon-btn" style={{ width: 32, height: 32 }} onClick={() => setShowSettings(false)}><X size={16} /></button>
+            </div>
+            <div className="settings-body">
+              <div className="form-field">
+                <label>Display Name</label>
+                <input value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Your name" />
+              </div>
+              <div className="form-field">
+                <label>Camera</label>
+                <select className="settings-select" value={selCam} onChange={e => setSelCam(e.target.value)}>
+                  <option value="">Default</option>
+                  {devices.filter(d => d.kind === 'videoinput').map(d => (
+                    <option key={d.deviceId} value={d.deviceId}>{d.label || 'Camera'}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-field">
+                <label>Microphone</label>
+                <select className="settings-select" value={selMic} onChange={e => setSelMic(e.target.value)}>
+                  <option value="">Default</option>
+                  {devices.filter(d => d.kind === 'audioinput').map(d => (
+                    <option key={d.deviceId} value={d.deviceId}>{d.label || 'Mic'}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="settings-info">
+                <AlertCircle size={13} /> Google Sign-In requires a Google OAuth Client ID configured server-side.
+              </div>
+            </div>
+            <div className="settings-footer">
+              <button className="btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={applySettings}>Apply Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Incoming call overlay */}
       {receivingCall && !callAccepted && (

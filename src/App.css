@@ -612,6 +612,135 @@
 }
 
 /* ════════════════════════════════════════════════
+   REACTIONS
+════════════════════════════════════════════════ */
+@keyframes floatReaction {
+  0%   { transform: translateY(0) scale(1);    opacity: 1; }
+  80%  { transform: translateY(-90px) scale(1.3); opacity: 0.8; }
+  100% { transform: translateY(-130px) scale(0.8); opacity: 0; }
+}
+.reaction-particle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 2rem;
+  animation: floatReaction 2.4s ease-out forwards;
+  z-index: 9998;
+  user-select: none;
+}
+.reaction-picker {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px 10px;
+  display: flex;
+  gap: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  animation: fadeUp 0.2s ease-out;
+  z-index: 50;
+  white-space: nowrap;
+}
+.reaction-pick-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: transform 0.15s;
+}
+.reaction-pick-btn:hover { transform: scale(1.35); background: var(--surface-hover); }
+
+/* Couple mode reaction picker */
+[data-couple="true"] .reaction-picker {
+  border-color: rgba(244,114,182,0.20);
+  background: var(--bg-elevated);
+}
+
+/* ════════════════════════════════════════════════
+   SETTINGS MODAL
+════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.60);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 300;
+  animation: fadeIn 0.2s ease-out;
+}
+.settings-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  width: 420px; max-width: 94vw;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+  animation: fadeUp 0.25s ease-out;
+  overflow: hidden;
+}
+.settings-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-header h3 { font-size: 1.1rem; }
+.settings-body {
+  padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.settings-footer {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
+}
+.settings-select {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.settings-select:focus { border-color: var(--primary); }
+.settings-select option { background: #1a2233; }
+.settings-info {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(245,158,11,0.08);
+  border: 1px solid rgba(245,158,11,0.2);
+  color: var(--warn);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* Couple mode settings */
+[data-couple="true"] .settings-modal {
+  border-color: rgba(244,114,182,0.18);
+}
+[data-couple="true"] .settings-select:focus {
+  border-color: var(--primary);
+}
+
+/* Screen share active glow on icon */
+.icon-btn.active[title="Stop sharing"] {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: #6366f1;
+  color: #fff;
+}
+[data-couple="true"] .icon-btn.active[title="Stop sharing"] {
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  border-color: #F472B6;
+}
+
+
+/* ════════════════════════════════════════════════
    COUPLE MODE — App-level overrides
 ════════════════════════════════════════════════ */
 
