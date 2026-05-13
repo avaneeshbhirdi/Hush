@@ -317,6 +317,7 @@ function AuthScreen({ onAuth, appMode, setAppMode }: { onAuth: (user: User) => v
 function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout: () => void; appMode: AppMode; setAppMode: (m: AppMode) => void }) {
   const [me, setMe] = useState('');
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [receivingCall, setReceivingCall] = useState(false);
   const [caller, setCaller] = useState('');
   const [callerSignal, setCallerSignal] = useState<any>();
@@ -369,12 +370,19 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
     setTimeout(() => setHearts(prev => prev.filter(h => !newHearts.find(n => n.id === h.id))), 3600);
   }, [appMode]);
 
-  const myVideo = useRef<HTMLVideoElement>(null);
-  const userVideo = useRef<HTMLVideoElement>(null);
   const connectionRef = useRef<RTCPeerConnection | null>(null);
   const socketRef = useRef<any>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const iceCandidatesQueue = useRef<any[]>([]);
+
+  const assignLocalVideo = useCallback((node: HTMLVideoElement | null) => {
+    if (node) node.srcObject = (isScreenSharing && screenStreamRef.current) ? screenStreamRef.current : stream;
+  }, [stream, isScreenSharing]);
+
+  const assignRemoteVideo = useCallback((node: HTMLVideoElement | null) => {
+    if (node) node.srcObject = remoteStream;
+  }, [remoteStream]);
 
   // ── Init ────────────────────────────────────────────
   useEffect(() => {
@@ -428,11 +436,17 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
     socketRef.current = new SupabaseSignaling();
     socketRef.current.on('connect', () => setConnected(true));
     socketRef.current.on('disconnect', () => setConnected(false));
+    socketRef.current.on('ice-candidate', async (c: any) => {
+      if (connectionRef.current && connectionRef.current.remoteDescription) {
+        try { await connectionRef.current.addIceCandidate(new RTCIceCandidate(c)); } catch {}
+      } else {
+        iceCandidatesQueue.current.push(c);
+      }
+    });
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(s => {
         setStream(s);
-        if (myVideo.current) myVideo.current.srcObject = s;
       })
       .catch(() => addMsg('system', '⚠ Camera/mic access denied. Allow permissions to make calls.'));
 
@@ -471,7 +485,7 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
       ],
     });
     if (stream) stream.getTracks().forEach(t => peer.addTrack(t, stream));
-    peer.ontrack = e => { if (userVideo.current) userVideo.current.srcObject = e.streams[0]; };
+    peer.ontrack = e => { setRemoteStream(e.streams[0]); };
     return peer;
   };
 
@@ -486,9 +500,6 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
     peer.onicecandidate = e => {
       if (e.candidate) socketRef.current?.emit('ice-candidate', { to: id, candidate: e.candidate });
     };
-    socketRef.current?.on('ice-candidate', async c => {
-      try { await peer.addIceCandidate(new RTCIceCandidate(c)); } catch { }
-    });
 
     const offer = await peer.createOffer();
     await peer.setLocalDescription(offer);
@@ -497,6 +508,10 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
     socketRef.current?.on('callAccepted', async signal => {
       setCallAccepted(true);
       await peer.setRemoteDescription(new RTCSessionDescription(signal));
+      while (iceCandidatesQueue.current.length > 0) {
+        const c = iceCandidatesQueue.current.shift();
+        try { await peer.addIceCandidate(new RTCIceCandidate(c)); } catch {}
+      }
       addMsg('system', '🔒 Connected — End-to-End Encrypted');
     });
   };
@@ -511,11 +526,12 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
     peer.onicecandidate = e => {
       if (e.candidate) socketRef.current?.emit('ice-candidate', { to: caller, candidate: e.candidate });
     };
-    socketRef.current?.on('ice-candidate', async c => {
-      try { await peer.addIceCandidate(new RTCIceCandidate(c)); } catch { }
-    });
 
     await peer.setRemoteDescription(new RTCSessionDescription(callerSignal));
+    while (iceCandidatesQueue.current.length > 0) {
+      const c = iceCandidatesQueue.current.shift();
+      try { await peer.addIceCandidate(new RTCIceCandidate(c)); } catch {}
+    }
     const answer = await peer.createAnswer();
     await peer.setLocalDescription(answer);
     socketRef.current?.emit('answerCall', { signal: answer, to: caller });
@@ -545,7 +561,6 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
       const vTrack = screen.getVideoTracks()[0];
       const sender = connectionRef.current?.getSenders().find(s => s.track?.kind === 'video');
       if (sender) sender.replaceTrack(vTrack);
-      if (myVideo.current) myVideo.current.srcObject = screen;
       setIsScreenSharing(true);
       vTrack.onended = () => stopScreenShare();
     } catch { addMsg('system', '⚠ Screen share cancelled or not supported.'); }
@@ -556,7 +571,6 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
     const vTrack = stream?.getVideoTracks()[0];
     const sender = connectionRef.current?.getSenders().find(s => s.track?.kind === 'video');
     if (sender && vTrack) sender.replaceTrack(vTrack);
-    if (myVideo.current && stream) myVideo.current.srcObject = stream;
     setIsScreenSharing(false);
   };
 
@@ -591,7 +605,6 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
         video: selCam ? { deviceId: { exact: selCam } } : true,
         audio: selMic ? { deviceId: { exact: selMic } } : true,
       });
-      if (myVideo.current) myVideo.current.srcObject = newStream;
       const vSender = connectionRef.current?.getSenders().find(s => s.track?.kind === 'video');
       const aSender = connectionRef.current?.getSenders().find(s => s.track?.kind === 'audio');
       vSender?.replaceTrack(newStream.getVideoTracks()[0]);
@@ -688,14 +701,14 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
           <div className="thumbnails-row">
             <div className="thumb">
               {stream
-                ? <video ref={myVideo} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ? <video ref={assignLocalVideo} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <div className="thumb-placeholder"><Video size={20} /></div>
               }
               <div className="thumb-label">You</div>
             </div>
             {inCall && (
               <div className="thumb">
-                <video ref={userVideo} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <video ref={assignRemoteVideo} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 <div className="thumb-label">{callerName || 'Peer'}</div>
               </div>
             )}
@@ -705,10 +718,10 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
           <div className="video-stage">
             {inCall ? (
               <>
-                <video ref={userVideo} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <video ref={assignRemoteVideo} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 {stream && (
                   <div className="pip-video">
-                    <video ref={myVideo} autoPlay muted playsInline />
+                    <video ref={assignLocalVideo} autoPlay muted playsInline />
                     <div className="pip-label">You</div>
                   </div>
                 )}
