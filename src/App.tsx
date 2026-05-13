@@ -390,6 +390,8 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
       channel: any;
       listeners: Record<string, (data?: any) => void> = {};
       myId: string;
+      iceQueues: Record<string, any[]> = {};
+      iceTimeouts: Record<string, any> = {};
 
       constructor() {
         this.myId = Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -421,7 +423,16 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
           targetEvent = 'callAccepted';
           targetPayload = data.signal;
         } else if (event === 'ice-candidate') {
-          targetPayload = data.candidate;
+          if (!this.iceQueues[to]) this.iceQueues[to] = [];
+          this.iceQueues[to].push(data.candidate);
+          if (!this.iceTimeouts[to]) {
+            this.iceTimeouts[to] = setTimeout(() => {
+              this.channel.send({ type: 'broadcast', event: 'ice-candidate-batch', payload: { to, data: this.iceQueues[to] } });
+              this.iceQueues[to] = [];
+              this.iceTimeouts[to] = null;
+            }, 300);
+          }
+          return;
         }
 
         this.channel.send({ type: 'broadcast', event: targetEvent, payload: { to, data: targetPayload } });
@@ -441,6 +452,15 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
         try { await connectionRef.current.addIceCandidate(new RTCIceCandidate(c)); } catch {}
       } else {
         iceCandidatesQueue.current.push(c);
+      }
+    });
+    socketRef.current.on('ice-candidate-batch', async (candidates: any[]) => {
+      for (const c of candidates) {
+        if (connectionRef.current && connectionRef.current.remoteDescription) {
+          try { await connectionRef.current.addIceCandidate(new RTCIceCandidate(c)); } catch {}
+        } else {
+          iceCandidatesQueue.current.push(c);
+        }
       }
     });
 
