@@ -400,7 +400,7 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
         });
       }
 
-      on(event: string, callback: (data: any) => void) { this.listeners[event] = callback; }
+      on(event: string, callback: (data?: any) => void) { this.listeners[event] = callback; }
 
       emit(event: string, data: any) {
         let targetEvent = event;
