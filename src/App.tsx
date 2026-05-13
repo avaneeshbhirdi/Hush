@@ -6,6 +6,9 @@ import {
   Monitor, MonitorOff, Settings, X, Smile, AlertCircle
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import JoinMeeting from './meeting/JoinMeeting';
+import MeetingRoom from './meeting/MeetingRoom';
 import './App.css';
 
 // ────────────────────────────────────────────────────
@@ -315,6 +318,7 @@ function AuthScreen({ onAuth, appMode, setAppMode }: { onAuth: (user: User) => v
 // Main App
 // ────────────────────────────────────────────────────
 function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout: () => void; appMode: AppMode; setAppMode: (m: AppMode) => void }) {
+  const navigate = useNavigate();
   const [me, setMe] = useState('');
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -838,11 +842,19 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
                   />
                   <button
                     className="btn-primary"
-                    style={{ width: '100%', justifyContent: 'center', fontSize: '0.9rem', padding: '11px' }}
+                    style={{ width: '100%', justifyContent: 'center', fontSize: '0.9rem', padding: '11px', marginBottom: 10 }}
                     onClick={() => callUser(idToCall)}
                     disabled={!idToCall || !me}
                   >
                     <Phone size={16} /> Initiate Secure Call
+                  </button>
+                  <div className="auth-divider" style={{margin: '10px 0'}}>or</div>
+                  <button
+                    className="btn-secondary"
+                    style={{ width: '100%', justifyContent: 'center', fontSize: '0.9rem', padding: '11px', display: 'flex', alignItems: 'center' }}
+                    onClick={() => navigate('/join')}
+                  >
+                    <Users size={16} style={{marginRight: 6}}/> Join Group Meeting
                   </button>
                 </div>
               )}
@@ -1035,5 +1047,12 @@ export default function App() {
   }, []);
 
   if (!user) return <AuthScreen onAuth={handleAuth} appMode={appMode} setAppMode={setAppMode} />;
-  return <MainApp user={user} onLogout={handleLogout} appMode={appMode} setAppMode={setAppMode} />;
+  
+  return (
+    <Routes>
+      <Route path="/" element={<MainApp user={user} onLogout={handleLogout} appMode={appMode} setAppMode={setAppMode} />} />
+      <Route path="/join" element={<JoinMeeting user={user} onLogout={handleLogout} appMode={appMode} setAppMode={setAppMode} />} />
+      <Route path="/meeting/:roomId" element={<MeetingRoom user={user} onLogout={handleLogout} appMode={appMode} setAppMode={setAppMode} />} />
+    </Routes>
+  );
 }

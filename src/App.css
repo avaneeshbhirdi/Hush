@@ -875,3 +875,132 @@
 .mode-item-couple.mode-item-active   { background: rgba(244,114,182,0.12); color: #F472B6; }
 .mode-item-gamer.mode-item-active    { background: rgba(168,85,247,0.12);  color: #A855F7; }
 .mode-item-hacker.mode-item-active   { background: rgba(34,197,94,0.10);   color: #22C55E; }
+
+/* ════════════════════════════════════════════════
+   GROUP MEETING ROOM
+════════════════════════════════════════════════ */
+.meeting-controls {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 20, 25, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 16px 28px;
+  border-radius: 99px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  gap: 16px;
+  z-index: 100;
+}
+
+.meeting-controls .icon-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+
+.meeting-controls .icon-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.meeting-controls .icon-btn.danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.meeting-controls .icon-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.meeting-controls .leave-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.meeting-controls .leave-btn:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.video-grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  gap: 16px;
+  padding: 16px;
+  padding-bottom: 100px;
+}
+
+.video-grid.grid-1 {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.video-grid.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr;
+}
+
+.video-grid.grid-4 {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.video-grid.grid-6 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.video-card {
+  position: relative;
+  background: #111;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #1a1f2c, #11151c);
+}
+
+.avatar-large {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.video-label {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+}
