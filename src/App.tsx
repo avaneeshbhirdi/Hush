@@ -505,7 +505,16 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
       ],
     });
     if (stream) stream.getTracks().forEach(t => peer.addTrack(t, stream));
-    peer.ontrack = e => { setRemoteStream(e.streams[0]); };
+    peer.ontrack = e => {
+      setRemoteStream(prev => {
+        if (e.streams && e.streams[0]) return e.streams[0];
+        if (prev) {
+          prev.addTrack(e.track);
+          return prev;
+        }
+        return new MediaStream([e.track]);
+      });
+    };
     return peer;
   };
 
