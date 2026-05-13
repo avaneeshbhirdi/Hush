@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
 import {
   Video, VideoOff, Mic, MicOff, Phone, PhoneOff,
   Send, Copy, ShieldCheck, LogOut, Users, MessageCircle,
@@ -45,7 +44,6 @@ const MODES: Record<AppMode, { label: string; icon: string; accent: string; bg: 
   },
 };
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5001' : `http://${window.location.hostname}:5001`);
 const STORAGE_KEY = 'hush_users';
 const SESSION_KEY = 'hush_session';
 
@@ -374,13 +372,60 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
   const myVideo = useRef<HTMLVideoElement>(null);
   const userVideo = useRef<HTMLVideoElement>(null);
   const connectionRef = useRef<RTCPeerConnection | null>(null);
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<any>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // ── Init ────────────────────────────────────────────
   useEffect(() => {
-    socketRef.current = io(SERVER_URL);
+    class SupabaseSignaling {
+      channel: any;
+      listeners: Record<string, (data?: any) => void> = {};
+      myId: string;
+
+      constructor() {
+        this.myId = Math.random().toString(36).substring(2, 10).toUpperCase();
+        this.channel = supabase.channel('hush-signaling');
+        
+        this.channel.on('broadcast', { event: '*' }, (payload: any) => {
+          if (payload.payload.to && payload.payload.to !== this.myId && payload.payload.to !== 'all') return;
+          if (this.listeners[payload.event]) {
+            this.listeners[payload.event](payload.payload.data);
+          }
+        }).subscribe((status: string) => {
+          if (status === 'SUBSCRIBED') {
+            if (this.listeners['connect']) this.listeners['connect']();
+            if (this.listeners['me']) this.listeners['me'](this.myId);
+          }
+        });
+      }
+
+      on(event: string, callback: (data: any) => void) { this.listeners[event] = callback; }
+
+      emit(event: string, data: any) {
+        let targetEvent = event;
+        let targetPayload = data;
+        let to = data.to || data.userToCall || 'all';
+
+        if (event === 'callUser') {
+          targetPayload = { signalData: data.signalData, from: data.from, name: data.name };
+        } else if (event === 'answerCall') {
+          targetEvent = 'callAccepted';
+          targetPayload = data.signal;
+        } else if (event === 'ice-candidate') {
+          targetPayload = data.candidate;
+        }
+
+        this.channel.send({ type: 'broadcast', event: targetEvent, payload: { to, data: targetPayload } });
+      }
+
+      disconnect() {
+        supabase.removeChannel(this.channel);
+        if (this.listeners['disconnect']) this.listeners['disconnect']();
+      }
+    }
+
+    socketRef.current = new SupabaseSignaling();
     socketRef.current.on('connect', () => setConnected(true));
     socketRef.current.on('disconnect', () => setConnected(false));
 
@@ -393,11 +438,11 @@ function MainApp({ user, onLogout, appMode, setAppMode }: { user: User; onLogout
 
     socketRef.current.on('me', id => setMe(id));
 
-    socketRef.current.on('callUser', data => {
+    socketRef.current.on('callUser', (data: any) => {
       setReceivingCall(true);
       setCaller(data.from);
       setCallerName(data.name);
-      setCallerSignal(data.signal);
+      setCallerSignal(data.signalData);
     });
 
     socketRef.current.on('callEnded', () => {
